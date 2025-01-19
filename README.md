@@ -1,4 +1,4 @@
-# SimuWF: 
+# SimuWF
 A GPE simulation program of a single wavefunction with custom potential, dispersion, interaction, and more!
 
 ### Install
