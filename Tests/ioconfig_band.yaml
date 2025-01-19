@@ -1,0 +1,40 @@
+# Try trim the bands
+
+SavePath : { TestRoot : testrootdir, TestFolder : "[2024.07.14].BandGeneration", TestName : "5.Bands.HighDTrimmed.2"}
+Dictionary : { Scheme : "tests/dictschm_band.yaml", ConvRules : "tests/dictschm.convrule.yaml",
+               Ordering : ordered, MaxRun : x1}
+General : { TrialRun : false }
+Iterator : 
+  FieldName : bandgen
+  Constructor : FreqSweepShakeBandGenerator
+  ArgsConstr : []
+  Pause : 
+    AddTo : bandgen.ioupdater
+    Time : 0
+Visuals :
+  - Type : Figure
+    Enabled : true    
+    FieldName : bandplot
+    Title : bandplot
+    FrameSize : [600, 1000]
+    Setter : setbandplot([-6 6], 58.6)
+    Updaters : 
+      - { Name : bands , ArgsConv : [λ.qwv_norm, λ.freq_now, "λ.band_shake_sbb(:,:,λ.iter_now)"] }
+      - { Name : ann   , ArgsConv : [λ.iter_now, λ.iter_max, λ.ampl_now, λ.freq_now] }
+    UpdateSource : bandgen
+    AddTo : bandgen.ioupdater
+VideoWriter : 
+  - Enabled : true
+    ArgsOpts : ["MPEG-4"]
+    FieldName : bands_record
+    Title : quasienergy_bands
+    UpdateSource : bandplot
+    AddTo : bandgen.ioupdater
+Saves : 
+  - { SaveSource : bandgen.exportdata   , Enabled : true, AddTo : post, Name : ShakeBands } 
+  - { SaveSource :     idxlist          , Enabled : true, AddTo : init, Name : IdxList    }
+  - { SaveSource :   schemeinfo         , Enabled : true, AddTo : init, Name : SchemeInfo } 
+  - { CopyFile   : config_src_filename  , Enabled : true , AddTo : init    } 
+  - { CopyFile   : config_conv_filename , Enabled : true , AddTo : init    } 
+  - { CopyFile   : dict_src_filename    , Enabled : true , AddTo : init    } 
+  - { CopyFile   : dict_conv_filename   , Enabled : true , AddTo : init    } 

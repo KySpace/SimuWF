@@ -1,0 +1,23 @@
+# Please make sure that the halfsz and dr matches that with the data
+# Data is loaded through wf_ini_gen
+Varying :
+# Units 
+#   length : μm
+#   k-vector : 2^pi/μm
+#   time : ms
+#   Energy : E_R
+Passive : 
+  lmd_Dip     : 1.064
+  k_R         : 2 * pi / lmd_Dip  
+  k_L         : 2 * k_R
+  tau_R       : 3.4131e-02;
+  dt_rel      : 10
+  dt_abs      : dt_rel * tau_R
+  calctime    : "@(j) j * dt_abs"
+  iter_max    : 100
+  dr          : lmd_Dip / 2
+  halfsz      : "[100 100 100]*dr"
+  pttl_gen    : "@(X,Y,Z) const(zeros(size(X)))"
+  dsps_gen    : "@(J,K,L) const((J.^2+K.^2+L.^2)/k_R^2)"
+  ntrc_gen    : const(0)
+  wf_ini_gen  : wfinifromdata("[2022.10].TiltedPttl", "1.Finer.2", "SimuResult", 14)

@@ -1,0 +1,49 @@
+SavePath : { TestRoot : testrootdir(), TestFolder : "[2023.07].Strathclyde", TestName : "[2023.07.29].4.FindMin.1"}
+Dictionary : { Scheme : "tests/dictschm_strathclyde.yaml", ConvRules : "tests/dictschm.convrule.yaml",
+               Ordering : cycling, MaxRun : -1}
+General : { TrialRun : false }
+Iterator : 
+  FieldName : simu
+  Constructor : SimuWF
+  ArgsConstr : []
+  Pause : 
+    AddTo : simu.ioupdater
+    Time : 0
+Observers : 
+  - FieldName : obs
+    Constructor : WFStorage
+    ArgsConstr : []
+    Updaters : 
+      - { Name : obs_update, ArgsConv : [λ.wf_pos, λ.wf_mmt, λ.calctime(λ.iter_now), λ.iter_now] }
+    UpdateSource : simu
+    AddTo : simu.ioupdater
+Visuals :
+  - Type : Figure
+    Enabled : true    
+    FieldName : pme
+    Title : pme
+    Number : 3
+    FrameSize : [1600, 1000]
+    Setter : setfigzevo(simu.pos, simu.mmt, simu.wf_ini, simu.pttl, simu.dsps, simu.calctime(1:simu.iter_max))
+    Updaters : 
+      - { Name : pos , ArgsConv : [λ.wf_pos → abs(λ).^2, λ.iter_now] }
+      - { Name : mmt , ArgsConv : [λ.wf_mmt → abs(λ).^2, λ.iter_now] }
+      - { Name : ann , ArgsConv : [λ.iter_now, λ.iter_max, λ.calctime(λ.iter_now), λ.ntrc] }
+      - { Name : E   , ArgsConv : [λ.ts, "[λ.E_t; λ.E_v; λ.E_i; λ.E_tot]"] }
+    UpdateSource : simu
+    AddTo : simu.ioupdater
+VideoWriter : 
+  - Enabled : false
+    ArgsOpts : ["MPEG-4"]
+    FieldName : pme_record
+    Title : pme
+    UpdateSource : pme
+    AddTo : simu.ioupdater
+Saves : 
+  - { SaveSource : simu.exportdata      , Enabled : true, AddTo : post, Name : SimuResult } 
+  - { SaveSource :  obs.exportdata      , Enabled : true, AddTo : post, Name : SavedFrame } 
+  - { SaveSource :     idxlist          , Enabled : true, AddTo : init, Name : IdxList    }
+  - { SaveSource :   schemeinfo         , Enabled : true, AddTo : init, Name : SchemeInfo } 
+  - { Figure :        pme               , Enabled : true, AddTo : post, Name : PME        }
+  - { CopyFile   : tests/ioconfig.yaml  , Enabled : true, AddTo : init } 
+  - { CopyFile   : tests/dictschm_strathclyde.yaml  , Enabled : true, AddTo : init } 

@@ -1,0 +1,81 @@
+# Amplitude scan. realistic.
+
+SavePath : { TestRoot : testrootdir, TestFolder : "[2024.11].Trial", TestName : "5.Long.6"}
+Dictionary : { Scheme : "tests/dictschm_long.yaml", ConvRules : "tests/dictschm.convrule.yaml",
+               Ordering : ordered, MaxRun : x1}
+General : { TrialRun : false }
+Iterator : 
+  FieldName : simu
+  Constructor : SimuWF
+  ArgsConstr : []
+  Pause : 
+    AddTo : simu.ioupdater
+    Time : 0
+Observers : 
+  - FieldName : obs
+    Enabled : true
+    Constructor : WFStorage
+    ArgsConstr : []
+    Updaters : 
+      - { Name : update, ArgsConv : [λ.wf_pos, λ.wf_mmt, λ.calctime(λ.iter_now), λ.iter_now] }
+    UpdateSource : simu
+    AddTo : simu.ioupdater
+  - FieldName : obsprfl
+    Enabled : true
+    Constructor : WFPrflStorage
+    ArgsConstr : []
+    Updaters : 
+      - { Name : update, ArgsConv : [λ.wf_pos, λ.wf_mmt, λ.calctime(λ.iter_now), λ.iter_now] }
+    UpdateSource : simu
+    AddTo : simu.ioupdater
+Visuals :
+  - Type : Figure
+    Enabled : true    
+    FieldName : pmexz
+    Title : XZ wavefunction snapshot
+    Number : 3
+    FrameSize : [800, 600]
+    Setter : setfigwf(simu.pos, simu.mmt, simu.wf_ini, simu.pttl, simu.dsps, struct())
+    Updaters : 
+      - { Name : pos , ArgsConv : [λ.wf_pos → abs(λ).^2, λ.pttl] }
+      - { Name : mmt , ArgsConv : [λ.wf_mmt → abs(λ) .* λ .* gencheckboardmat(size(λ)), λ.dsps] }
+      - { Name : ann , ArgsConv : [λ.iter_now, λ.iter_max, λ.calctime(λ.iter_now), λ.ntrc] }
+      - { Name : E   , ArgsConv : [λ.ts, "[λ.E_t; λ.E_v; λ.E_i; λ.E_tot]"] }
+    UpdateSource : simu
+    SetAt : prep
+    AddTo : simu.ioupdater
+  - Type : Figure
+    Enabled : false    
+    FieldName : pmezt
+    Title : Z-t wavefunction
+    Number : 3
+    FrameSize : [1600, 1000]
+    Setter : setfigzevo(simu.pos, simu.mmt, simu.wf_ini, simu.pttl, simu.dsps, simu.calctime(1:simu.iter_max))
+    Updaters : 
+      - { Name : pos , ArgsConv : [λ.wf_pos, λ.iter_now] }
+      - { Name : mmt , ArgsConv : [λ.wf_mmt, λ.iter_now] }
+      - { Name : ann , ArgsConv : [λ.iter_now, λ.iter_max, λ.calctime(λ.iter_now), λ.ntrc] }
+      - { Name : E   , ArgsConv : [λ.ts, "[λ.E_t; λ.E_v; λ.E_i; λ.E_tot]"] }
+    UpdateSource : simu
+    SetAt : prep
+    AddTo : simu.ioupdater
+VideoWriter : 
+  - Enabled : true
+    ArgsOpts : ["MPEG-4"]
+    FieldName : pme_record
+    Title : pmexz
+    UpdateSource : pmexz
+    SetAt : prep
+    AddTo : simu.ioupdater
+Saves : 
+  - { SaveSource : simu.exportdata      , Enabled : true , AddTo : post , Name : SimuResult } 
+  - { SaveSource :  obs.exportdata      , Enabled : true, AddTo : post , Name : SavedFrame } 
+  - { SaveSource :  obsprfl.exportdata  , Enabled : false, AddTo : post , Name : SavedPrfl  } 
+  - { SaveSource :     idxlist          , Enabled : true , AddTo : init , Name : IdxList    }
+  - { SaveSource :   schemeinfo         , Enabled : true , AddTo : init , Name : SchemeInfo } 
+  - { Figure :        pmexz             , Enabled : true , AddTo : post , Name : PMEXZ      }
+  - { Figure :        pmezt             , Enabled : false, AddTo : post , Name : PMEZT      }
+  - { CopyFile   : config_src_filename  , Enabled : true , AddTo : init    } 
+  - { CopyFile   : config_conv_filename , Enabled : true , AddTo : init    } 
+  - { CopyFile   : dict_src_filename    , Enabled : true , AddTo : init    } 
+  - { CopyFile   : dict_conv_filename   , Enabled : true , AddTo : init    } 

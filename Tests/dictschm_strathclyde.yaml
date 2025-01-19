@@ -1,0 +1,68 @@
+# From PRL 127, 243603 (2021)
+# mitchell0221floquet
+# 1D soliton with Cs
+# We have verified with the soliton at the top of the band
+# and the incoherent decay to the BZ edges. 
+Varying :
+    pttldsps    : ["[8 -0.4]", "[24, -10]", "[3000, -0.4]"]
+    dsps_fun    : ["\"dspssharp3d\"", "\"dspscosz3d\""]
+    sz_ini      : [10]
+    ntrc        : [2e-4,0]
+    dssp        : [0.05]    
+    n_ini       : [2e2]
+# Units 
+#   length : μm
+#   k-vector : 2^pi/μm
+#   absolute time, τ_R : ms
+#   t_rel : tau_R
+#   Energy : E_R
+#   lam_Latt = 1.064 μm
+#   Recoild Energy E_R = h^2 / (2 * m_Cs) / lam_Latt^2 = 8.78e-31
+#   shaking frequency corresponding to 4E_R: ν_sh_0 = 4 * E_R / h = 5.3 kHz
+#   Time for a complete phase rotate at E_R, tau_R = h / E_R = 0.75 ms
+#
+#   Lattice Depth : V_rel = V_0 = 12 E_r
+#   Tunneling Coefficient J = 4/sqrt(π)*V_rel^(3/4)*exp(-2*sqrt(V_rel)) E_r = 0.014 E_r
+#   J_eff : E_r, the effective tunneling element with shaking, can be negative
+#   alpha_J : effective, a bessel function of the shaking strength, goes from 1 to ~ -0.4
+Passive : 
+  lmd_Dip     : 1.064
+  k_R         : 2 * pi / lmd_Dip 
+  k_L         : 2 * k_R
+  tau_R       : 0.75;   
+  dt_rel      : 0.05
+  dt_abs      : dt_rel * tau_R
+  calctime    : "@(j) j * dt_abs"
+  iter_max    : 800
+  dr          : lmd_Dip / 2 * [0.5, 1, 1]
+  halfszdim   : "[20 0 100]"
+  halfsz      : "halfszdim.*dr"
+  vel_rec     : 2 * lmd_Dip / tau_R * 1000 # μm / s
+
+  n_ini       : 800 # μm^-3
+  sz_ini      : 4 # μm
+  ntrc        : 2.4e-4 # E_r / wavefunction^2
+  z_dip       : pttldsps(1) # μm (from ω_z = 30 Hz measurement)
+
+  dssp        : 0.1
+  dist_well   : 0.4
+  ellipticity : 3
+  pttl        : "@(X, Y, Z) (X.^2 + Y.^2)/(z_dip/ellipticity)^2 + (Z / z_dip) .^ 2"
+  J_rel       : 0.014
+  alpha_J     : pttldsps(2)
+  J_eff       : alpha_J * J_rel
+  dsps_peak   : 0.012
+  dsps        : apply(eval("@"+dsps_fun), J_eff, k_L)
+  pttl_gen    : constgen(pttl)
+  dsps_gen    : constgen(dsps)
+  ntrc_gen    : const(ntrc)
+  dssp_gen    : const(dssp)
+  wf_ini_gen  : "@(X,Y,Z) sqrt(n_ini) * sech(Z / sz_ini) .* sech(X / sz_ini * ellipticity) .* sech(Y / sz_ini * ellipticity)"
+  # ---- Saving Key Frames
+  sz_dim      : halfszdim * 2 + 1  
+  # halfsz    same as above   
+  # dr        same as above          
+  timestamps  : "[500]"
+  savename_setter   : "@(i) \"frame_\" + num2str(i) + \".mat\" "
+  # ---- Saving Profile
+  dim_integrate : "[1 2]"

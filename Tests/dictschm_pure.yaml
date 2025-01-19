@@ -1,0 +1,51 @@
+# Investigate the case of pure inverse linear dispersion
+# in z direction
+Varying :
+    dspsslope   : [3.0]
+    sz_init     : [10,15,20,25]
+    deg_dipl    : [0]
+    ntrc        : [1]
+# Units 
+#   length : μm
+#   k-vector : 2^pi/μm
+#   absolute time, τ_R : ms
+#   t_rel : tau_R
+#   Energy : E_R
+#   Recoild Energy E_R = h^2 / (2 * 2m_Li) / lam_Latt^2 = 9.707E-30
+#   shaking frequency corresponding to 4E_R: ν_sh_0 = 4 * E_R / h = 58.6 kHz
+#   Time for a complete phase rotate at E_R, tau_R = h / E_R = 6.8261e-02 ms
+Passive : 
+  lmd_Dip     : 1.064
+  k_R         : 2 * pi / lmd_Dip 
+  k_L         : 2 * k_R
+  tau_R       : 6.8261E-2;   
+  w_r         : 25
+  w_z         : 50
+  z_R         : 50
+  dt_rel      : 0.02
+  dt_abs      : dt_rel * tau_R
+  calctime    : "@(j) j * dt_abs"
+  iter_max    : 1200
+  dr          : lmd_Dip / 2 * [1, 1, 0.2]
+  halfsz      : "[100 000 2500].*dr"
+  vel_rec     : 31200 # μm / s
+  freq_dipl_trsv : 500
+  freq_dipl_long : 200
+  x_init_edge : sz_init * sind(deg_dipl)
+  z_init_edge : sz_init * cosd(deg_dipl)
+  deg_dipl    : 22.5
+  shft_dipl   : "[0,0,0]"
+  freq_shake_rel : 1.075
+  ampl_shake_rel : "num2cell(0.025:0.005:0.455)"
+  pttl_gen    : mkpttl1(vel_rec, freq_dipl_trsv, freq_dipl_long, deg_dipl)
+  pttl_gen_pre: mkpttl1(vel_rec, freq_dipl_trsv, freq_dipl_long, deg_dipl)
+  dsps_gen    : dspsinvlin(dspsslope, k_L)
+  ntrc_gen    : const(ntrc)
+  z_shft      : 0
+  wf_ini_gen  : cmplpttl(atiter(1,pttl_gen_pre), apply(pttl_gen_pre(x_init_edge,0,z_init_edge), 1))
+  # ---- Saving Key Frames
+  sz          : size(halfsz)  
+  # halfsz    same as above   
+  # dr        same as above          
+  timestamps  : "0:0.1:0.5"
+  savename_setter   : "@(i) \"frame_\" + num2str(i) + \".mat\" "

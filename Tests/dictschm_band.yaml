@@ -1,0 +1,13 @@
+Varying :
+    max_shake   : "[{0.01,0.02,0.04,0.07,0.10,0.13,0.17} num2cell(0.2:0.05:1)]"
+    depth_latt  : "num2cell(1.2:0.2:3.6)"    
+Passive : 
+  depth_latt    : 1.6
+  max_shake     : 0.25
+  shake_phase   : pi/2
+  ampl_sweep    : "[0 1]"
+  freq_sweep    : "1.37:-0.01:0.50"
+  step_qwv      : 0.01
+  hfdim_smpl    : 5
+  dim           : 2
+  n_seq         : 500

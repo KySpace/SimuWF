@@ -1,0 +1,66 @@
+# No frequency adjustment
+Varying :
+    freq_dipl_long : [210]
+    sz_init : [12]
+    depth_latt : [2.0]
+    freq_shake  : [63]
+    ampl_shake_rel : [0.3] # [0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.50]
+    dssp        : [0.02]
+    ntrc        : [2.5e-2]
+# Units 
+#   length : μm
+#   k-vector : 2^pi/μm
+#   absolute time, τ_R : ms
+#   t_rel : tau_R
+#   Energy : E_R
+#   Recoild Energy E_R = h^2 / (2 * 2m_Li) / lam_Latt^2 = 9.707E-30
+#   shaking frequency corresponding to 4E_R: ν_sh_0 = 4 * E_R / h = 58.6 kHz
+#   Time for a complete phase rotate at E_R, tau_R = h / E_R = 6.8261e-02 ms
+Passive : 
+  lmd_Dip     : 1.064
+  k_R         : 2 * pi / lmd_Dip 
+  k_L         : 2 * k_R
+  tau_R       : 6.8261E-2;   
+  w_r         : 25
+  w_z         : 50
+  z_R         : 50
+  dt_rel      : 0.02
+  dt_abs      : dt_rel * tau_R
+  calctime    : "@(j) j * dt_abs"
+  iter_max    : 800
+  dr          : lmd_Dip / 2 * [1, 4, 1]
+  halfszdim   : "[100 0 100]"
+  halfsz      : "halfszdim.*dr"
+  vel_rec     : 2 * lmd_Dip / tau_R * 1000 # μm / s
+  pttl_elongation : 3.16
+  freq_dipl_long : 200
+  freq_dipl_trsv : freq_dipl_long * pttl_elongation
+  deg_dipl    : 53
+  sz_init     : 10      # μm
+  x_init_edge : sz_init * sind(deg_dipl)
+  z_init_edge : sz_init * cosd(deg_dipl)
+  shft_dipl   : "[0,0,0]"
+  freq_shake_rel : freq_shake/4*tau_R
+  ampl_shake_rel : 0.5
+
+  ntrc        : 2.5e-2 #μm
+  dssp        : 0.01
+  pttl_gen    : mkpttl1(vel_rec, freq_dipl_trsv, freq_dipl_long, deg_dipl)
+  pttl_gen_pre: mkpttl1(vel_rec, freq_dipl_trsv, freq_dipl_long, deg_dipl)
+  dsps_datapath : "\"bandgeneration/BandTable.[2024.07.14].mat\""
+  dsps        : dspsfromdata(dsps_datapath, depth_latt, freq_shake_rel, ampl_shake_rel, k_L, 1)
+  dsps_gen    : constgen(dsps);
+  ntrc_gen    : const(ntrc)
+  dssp_gen    : const(dssp)
+  z_shft      : 0
+  n_init      : 6.9
+  wf_ini_norm : wfinigauoval_XZ([0,0,0], [1/pttl_elongation,1/pttl_elongation,1]*sz_init, deg_dipl)
+  wf_ini_gen  : "@(X, Y, Z) sqrt(n_init) * wf_ini_norm(X, Y, Z)"
+  # ---- Saving Key Frames
+  sz_dim      : halfszdim * 2 + 1  
+  # halfsz    same as above   
+  # dr        same as above          
+  timestamps  : "[0.4]"
+  savename_setter   : "@(i) \"frame_\" + num2str(i) + \".mat\" "
+  # ---- Saving Profile
+  dim_integrate : "[2]"

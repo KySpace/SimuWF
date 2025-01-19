@@ -1,0 +1,58 @@
+# From DOI:10.1038/NPHYS2789
+# parker2013direct.natphys
+# Spontaneous symmetry breaking
+Varying :
+    ntrc        : [1.2]
+    dssp        : [0, 0.01, 0.1]
+    n_ini       : [80, 200, 800]
+    sz_ini      : [10]
+    l_bias      : [-1, -0.5, -0.1, 0.1, 0.5, 1]
+# Units 
+#   length : μm
+#   k-vector : 2^pi/μm
+#   absolute time, τ_R : ms
+#   t_rel : tau_R
+#   Energy : E_R
+#   lam_Latt = 1.064 μm
+#   Recoild Energy E_R = h^2 / (2 * m_Cs) / lam_Latt^2 = 8.78e-31
+#   shaking frequency corresponding to 4E_R: ν_sh_0 = 4 * E_R / h = 5.3 kHz
+#   Time for a complete phase rotate at E_R, tau_R = h / E_R = 0.75 ms
+#
+#   Lattice Depth : V_rel = V_0 = 7 E_r
+Passive : 
+  lmd_Dip     : 1.064
+  k_R         : 2 * pi / lmd_Dip 
+  k_L         : 2 * k_R
+  tau_R       : 0.75;   
+  dt_rel      : 0.2
+  dt_abs      : dt_rel * tau_R
+  calctime    : "@(j) j * dt_abs"
+  iter_max    : 500
+  dr          : lmd_Dip / 2 * [1, 1, 1]
+  halfsz      : "[100 10 100].*dr"
+  vel_rec     : 2 * lmd_Dip / tau_R * 1000 # μm / s
+  depth_latt  : 5.0
+  freq_shake_rel_f : 1.1
+  freq_shake_rel_i : 1.2
+  ampl_shake_rel : 0.5
+  t_ramp      : 50  # ms
+
+  n_ini       : 80 # μm^-3
+  sz_ini      : 4 # μm
+  ntrc        : 2.4e-4 # E_r / wavefunction^2
+  z_dip       : 16 # μm (from ω_z = 30 Hz measurement)
+
+  dssp        : 0
+  l_bias      : 0
+  dsps_datapath : "\"bandgeneration/BandTable.[2023.02.28].[1].mat\""
+  pttl_gen    : mkpttl1(vel_rec, 20, 20, 0)
+  dsps_gen    : shakingseqramp(dsps_datapath, depth_latt, freq_shake_rel_i, freq_shake_rel_f, t_ramp, ampl_shake_rel, k_L, 2)
+  ntrc_gen    : const(ntrc)
+  dssp_gen    : const(dssp)
+  wf_ini_gen  : wfinigaussbias([0 0 0], sz_ini, l_bias)
+  # ---- Saving Key Frames
+  sz          : size(halfsz)  
+  # halfsz    same as above   
+  # dr        same as above          
+  timestamps  : "[0]"
+  savename_setter   : "@(i) \"frame_\" + num2str(i) + \".mat\" "
